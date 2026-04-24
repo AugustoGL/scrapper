@@ -5,6 +5,8 @@ import { PlusOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/ico
 import SelectableCardTable from "../components/selectableCard/SelectableCardTable.jsx";
 import { COLUMN_TYPES_SELECT, COLUMN_TYPES } from "../columnTypes.js";
 import { getTables, getTableById, getRowsByTableId } from "../mock/db.js";
+import TableDetail from "../components/tableDetail/TableDetail.jsx";
+
 
 const EMPTY_COLUMN = { nombre: "", descripcion: "", tipo: null };
 
@@ -53,11 +55,7 @@ export default function TablesConfigurations() {
     const buildAntColumns = (table) => {
         if (!table) return [];
         return table.columns.map(col => ({
-            title: (
-                <Tag variant="outlined" color={COLUMN_TYPES[col.type]?.color}>
-                    {col.name}
-                </Tag>
-            ),
+            title: col.name,
             key: col.id,
             render: (_, record) => {
                 const cell = record.values.find(v => v.id_column === col.id);
@@ -144,23 +142,13 @@ export default function TablesConfigurations() {
                 {/* Tabla */}
                 {selected && (
                     <Flex vertical gap={16}>
-                        <Flex gap={8} align="center">
-                            <span style={{ fontSize: 16, fontWeight: 500 }}>{selectedTable?.title}</span>
-                            {selectedTable?.columns.map(col => (
-                                <Tag key={col.id} color={COLUMN_TYPES[col.type]?.color} variant="outlined">
-                                    {col.name}
-                                </Tag>
-                            ))}
-                        </Flex>
-
                         {loadingTable ? (
                             <Skeleton active paragraph={{ rows: 5 }} />
                         ) : (
-                            <Table
-                                columns={buildAntColumns(selectedTable)}
-                                dataSource={buildAntRows(tableRows)}
-                                pagination={{ pageSize: 10 }}
-                                size="middle"
+                            <TableDetail
+                                selectedTable={selectedTable}
+                                tableRows={tableRows}
+                                loading={loadingTable}
                             />
                         )}
                     </Flex>

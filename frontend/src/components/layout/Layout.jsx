@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <Layout style={{ height: '100vh', overflow: 'hidden' }}>
-      <Sider theme="light" collapsible collapsed={collapsed} onCollapse={value => setCollapsed(value)}>
+      <Sider theme="light">
         <div style={{ padding: '20px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '30px' }}>
           logo version algo
         </div>
