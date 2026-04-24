@@ -1,10 +1,11 @@
 from fastapi import HTTPException, status
 from app.core.security import hash_password
 from .user_service import get_user_by_email, create_user
+from app.schema.auth import RegisterRequest
     
 
-def register_user(session, username: str, email: str, password: str):
-    user_existing = get_user_by_email(session=session, email=email)
+def register_user(session, data_user: RegisterRequest):
+    user_existing = get_user_by_email(session=session, email=data_user.email)
 
     if user_existing:
         raise HTTPException(
@@ -12,11 +13,11 @@ def register_user(session, username: str, email: str, password: str):
             detail="Email already registered"
         )
 
-    hashed_password = hash_password(password)
+    hashed_password = hash_password(data_user.password)
 
     return create_user(
         session=session,
-        username=username,
-        email=email,
+        username=data_user.username,
+        email=data_user.email,
         password=hashed_password
     )

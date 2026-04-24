@@ -8,5 +8,5 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/register",status_code=status.HTTP_201_CREATED)
-def register(session: SessionDep, data: RegisterRequest):
-    register_user(session=session, username=data.username, email=data.email, password=data.password) 
+def register(session: SessionDep, data_user: RegisterRequest):
+    register_user(session=session, data_user=data_user)
