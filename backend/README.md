@@ -12,6 +12,9 @@ Usamos python 3.12
 Entramos a backend
 pipenv install
 pipenv shell
+## Crear tablas en base de datos
+Estando dentro de backend y con el entorno virtual activo ejecutar:
+python3 -m  app.core.db
 
 ### 3. Correr servidor
 fastapi dev app/main.py
