@@ -1,13 +1,20 @@
-import { useState } from 'react'
-import DashboardLayout from './components/layout.jsx/Layout.jsx'
-import IAConfiguration from './pages/IAConfiguration.jsx'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import DashboardLayout from './components/layout/Layout.jsx';
+import IAConfiguration from './pages/IAConfiguration.jsx';
+import TablesConfigurations from './pages/TablesConfigurations.jsx';
 
 function App() {
-
   return (
-    <DashboardLayout>
-      <IAConfiguration />
-    </DashboardLayout>
-  )
+    <BrowserRouter>
+      <DashboardLayout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/configuracion" replace />} />
+          <Route path="/configuracion" element={<IAConfiguration />} />
+          <Route path="/tablas" element={<TablesConfigurations />} />
+        </Routes>
+      </DashboardLayout>
+    </BrowserRouter>
+  );
 }
-export default App
+
+export default App;

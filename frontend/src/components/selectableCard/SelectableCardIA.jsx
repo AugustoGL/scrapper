@@ -2,7 +2,7 @@ import { Card, Typography, Avatar, Flex, Grid, theme } from "antd";
 
 const { useBreakpoint } = Grid;
 
-export default function SelectableCard({ icon, name, company, value, color, selected, onSelect }) {
+export default function SelectableCardIA({ icon, name, company, value, color, selected, onSelect }) {
     const isActive = selected === value;
     const { token } = theme.useToken();
 

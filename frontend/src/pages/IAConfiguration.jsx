@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Flex, Space, theme, Input, Button, Select, InputNumber, message, Typography } from "antd";
-import SelectableCard from "../components/selectableCard/SelectableCard.jsx";
+import SelectableCard from "../components/selectableCard/SelectableCardIA.jsx";
 import { Icon } from '@iconify/react';
 import Header from "../components/header/Header.jsx";
 import { useProviderModels } from "../hooks/useProviderModels.js";
