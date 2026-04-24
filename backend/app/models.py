@@ -12,7 +12,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
 
-    tables = relationship("Table", back_populates="user")
+    tables = relationship("Table", back_populates="user", cascade='all, delete')
     
 class Table(Base):
     __tablename__ = "Tables"
@@ -24,12 +24,12 @@ class Table(Base):
     id_user = Column(Integer, ForeignKey("Users.id_user"))
 
     user = relationship("User", back_populates="tables")
-    columns = relationship("Column", back_populates="table")
-    records = relationship("Record", back_populates="table")
+    columns = relationship("TableColumn", back_populates="table", cascade='all, delete')
+    records = relationship("Record", back_populates="table", cascade='all, delete')
     
     
 class TableColumn(Base):
-    __tablename__ = "Columns"
+    __tablename__ = "TableColumns"
 
     column_id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
@@ -38,7 +38,7 @@ class TableColumn(Base):
     id_table = Column(Integer, ForeignKey("Tables.id_table"))
 
     table = relationship("Table", back_populates="columns")
-    values = relationship("Value", back_populates="column")
+    values = relationship("Value", back_populates="column", cascade='all, delete')
     
 
 class Record(Base):
@@ -50,7 +50,7 @@ class Record(Base):
     id_table = Column(Integer, ForeignKey("Tables.id_table"))
 
     table = relationship("Table", back_populates="records")
-    values = relationship("Value", back_populates="record")
+    values = relationship("Value", back_populates="record", cascade='all, delete')
 
 
 class Value(Base):
@@ -60,7 +60,7 @@ class Value(Base):
     value = Column(String)
 
     id_record = Column(Integer, ForeignKey("Records.id_record"))
-    id_column = Column(Integer, ForeignKey("Columns.column_id"))
+    id_column = Column(Integer, ForeignKey("TableColumns.column_id"))
 
     record = relationship("Record", back_populates="values")
     column = relationship("TableColumn", back_populates="values")
