@@ -8,8 +8,8 @@ fastapi = {extras = ["standard"], version = "*"}
 requests = "*"
 sqlalchemy = "*"
 psycopg2 = "*"
-jwt = "*"
 passlib = "*"
+pyjwt = "*"
 
 [dev-packages]
 
