@@ -4,7 +4,7 @@ from app.schema.user import ReadUser, UpdateUser
 from app.services.user_service import edit_user
 
 
-router = APIRouter(prefix="/user", tags=["User"])
+router = APIRouter(prefix="/users", tags=["User"])
 
 @router.get("/me")
 def get_my_user(user: CurrentUser) -> ReadUser:
