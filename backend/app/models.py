@@ -14,6 +14,9 @@ class User(Base):
 
     tables = relationship("Table", back_populates="user", cascade='all, delete')
     
+    def __str__(self):
+        return f"User: {self.id_user}, {self.username}, {self.email}, {self.password}"
+    
 class Table(Base):
     __tablename__ = "Tables"
 

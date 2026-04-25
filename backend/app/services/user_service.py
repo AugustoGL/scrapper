@@ -5,7 +5,7 @@ from app.models import User
 
 def get_user_by_email(*, session: Session, email: str) -> User | None:
     statement = select(User).where(User.email == email)
-    return session.execute(statement).first()
+    return session.execute(statement).scalars().first()
 
 def create_user(*, session: Session, username: str, email: str, password: str) -> User:
     new_user = User(
