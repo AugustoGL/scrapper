@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.base import Base
 
@@ -22,7 +22,7 @@ class Table(Base):
 
     id_table = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    creation_at = Column(Date)
+    creation_at = Column(DateTime)
 
     id_user = Column(Integer, ForeignKey("Users.id_user"))
 
@@ -48,7 +48,7 @@ class Record(Base):
     __tablename__ = "Records"
 
     id_record = Column(Integer, primary_key=True,)
-    creation_at = Column(Date)
+    creation_at = Column(DateTime)
 
     id_table = Column(Integer, ForeignKey("Tables.id_table"))
 
