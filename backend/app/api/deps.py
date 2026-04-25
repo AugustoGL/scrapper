@@ -16,7 +16,7 @@ TokenDep = Annotated[str, Depends(oauth2)]
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
     if not verify_token(token, TokenType.ACCESS):
-        raise HTTPException("Token invalid")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token invalid")
     
     payload = decode_token(token)
 

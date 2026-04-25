@@ -12,5 +12,5 @@ def get_my_user(user: CurrentUser) -> ReadUser:
 
 @router.put("/me")
 def edit_my_user(session: SessionDep, user: CurrentUser, updateUser: UpdateUser) -> ReadUser:
-    return edit_user(session, user.id_user, user)
+    return edit_user(session, user.id_user, updateUser)
     

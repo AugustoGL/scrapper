@@ -34,7 +34,7 @@ class Table(Base):
 class TableColumn(Base):
     __tablename__ = "TableColumns"
 
-    column_id = Column(Integer, primary_key=True)
+    id_column = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     data_type = Column(String, nullable=False)
 
@@ -63,7 +63,7 @@ class Value(Base):
     value = Column(String)
 
     id_record = Column(Integer, ForeignKey("Records.id_record"))
-    id_column = Column(Integer, ForeignKey("TableColumns.column_id"))
+    id_column = Column(Integer, ForeignKey("TableColumns.id_column"))
 
     record = relationship("Record", back_populates="values")
     column = relationship("TableColumn", back_populates="values")
