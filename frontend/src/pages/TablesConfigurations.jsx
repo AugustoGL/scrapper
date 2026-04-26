@@ -4,7 +4,7 @@ import { Flex, theme, Button, Modal, Form, Input, Select, Divider, Tag, Table, S
 import { PlusOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import SelectableCardTable from "../components/selectableCard/SelectableCardTable.jsx";
 import { COLUMN_TYPES_SELECT, COLUMN_TYPES } from "../columnTypes.js";
-import { getTables, getTableById, getRowsByTableId } from "../mock/db.js";
+import { getTables, getTableById, getRowsByTableId } from "../../shared/mock/db.js";
 import TableDetail from "../components/tableDetail/TableDetail.jsx";
 
 
@@ -124,7 +124,7 @@ export default function TablesConfigurations() {
                 {/* Cards */}
                 {!selected && (
                     loadingTables ? (
-                        <Skeleton active paragraph={{ rows: 2 }} />
+                        <Skeleton active paragraph={{ rows: 3 }} />
                     ) : (
                         <Flex wrap gap={25}>
                             {tables.map((table) => (

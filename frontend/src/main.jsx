@@ -11,7 +11,7 @@ createRoot(document.getElementById('root')).render(
   theme={{
     token: {
       borderRadiusLG: 12,
-      bodyBg: "green",
+      colorPrimary: "orange",
     },
   }}
 >

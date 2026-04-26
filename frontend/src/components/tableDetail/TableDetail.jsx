@@ -151,15 +151,6 @@ export default function TableDetail({ selectedTable, tableRows, loading }) {
 
     return (
         <Flex vertical gap={16}>
-            <Flex gap={8} align="center">
-                <span style={{ fontSize: 16, fontWeight: 500 }}>{selectedTable?.title}</span>
-                {selectedTable?.columns.map(col => (
-                    <Tag key={col.id} color={COLUMN_TYPES[col.type]?.color} variant="outlined">
-                        {col.name}
-                    </Tag>
-                ))}
-            </Flex>
-
             {loading ? (
                 <Skeleton active paragraph={{ rows: 5 }} />
             ) : (
