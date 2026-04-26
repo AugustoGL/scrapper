@@ -1,0 +1,22 @@
+FROM python:3.12.13
+
+WORKDIR /code
+
+# Instalar pipenv
+RUN pip install --no-cache-dir pipenv
+
+# Copiar Pipfile y Pipfile.lock
+COPY Pipfile Pipfile.lock /code/
+
+# Instalar dependencias en el sistema (sin virtualenv)
+RUN pipenv install --system --deploy --ignore-pipfile
+
+# Copiar la app
+COPY app /code/app
+
+EXPOSE 80
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
