@@ -7,6 +7,9 @@ name = "pypi"
 fastapi = {extras = ["standard"], version = "*"}
 requests = "*"
 sqlalchemy = "*"
+psycopg2 = "*"
+passlib = "*"
+pyjwt = "*"
 
 [dev-packages]
 

@@ -1,0 +1,69 @@
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from app.core.base import Base
+
+
+
+class User(Base):
+    __tablename__ = "Users"
+
+    id_user = Column(Integer, primary_key=True)
+    username = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+
+    tables = relationship("Table", back_populates="user", cascade='all, delete')
+    
+    def __str__(self):
+        return f"User: {self.id_user}, {self.username}, {self.email}, {self.password}"
+    
+class Table(Base):
+    __tablename__ = "Tables"
+
+    id_table = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    creation_at = Column(DateTime)
+
+    id_user = Column(Integer, ForeignKey("Users.id_user"))
+
+    user = relationship("User", back_populates="tables")
+    columns = relationship("TableColumn", back_populates="table", cascade='all, delete')
+    records = relationship("Record", back_populates="table", cascade='all, delete')
+    
+    
+class TableColumn(Base):
+    __tablename__ = "TableColumns"
+
+    id_column = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    data_type = Column(String, nullable=False)
+
+    id_table = Column(Integer, ForeignKey("Tables.id_table"))
+
+    table = relationship("Table", back_populates="columns")
+    values = relationship("Value", back_populates="column", cascade='all, delete')
+    
+
+class Record(Base):
+    __tablename__ = "Records"
+
+    id_record = Column(Integer, primary_key=True,)
+    creation_at = Column(DateTime)
+
+    id_table = Column(Integer, ForeignKey("Tables.id_table"))
+
+    table = relationship("Table", back_populates="records")
+    values = relationship("Value", back_populates="record", cascade='all, delete')
+
+
+class Value(Base):
+    __tablename__ = "Values"
+
+    id_value = Column(Integer, primary_key=True)
+    value = Column(String)
+
+    id_record = Column(Integer, ForeignKey("Records.id_record"))
+    id_column = Column(Integer, ForeignKey("TableColumns.id_column"))
+
+    record = relationship("Record", back_populates="values")
+    column = relationship("TableColumn", back_populates="values")
