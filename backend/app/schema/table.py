@@ -11,6 +11,13 @@ class ReadColumn(BaseModel):
     class Config:
         from_attributes = True
 
+class CreateColumn(BaseModel):
+    name: str
+    data_type: str
+    
+class UpdateColumn(CreateColumn):
+    pass
+
 class ReadTable(BaseModel):
     id_table: int
     name: str
