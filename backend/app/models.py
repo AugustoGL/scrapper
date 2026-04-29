@@ -37,6 +37,7 @@ class TableColumn(Base):
     id_column = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     data_type = Column(String, nullable=False)
+    description = Column(String, nullable=True)
 
     id_table = Column(Integer, ForeignKey("Tables.id_table"))
 

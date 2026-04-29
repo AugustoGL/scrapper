@@ -27,6 +27,8 @@ services:
       - db
     ports:
       - "8000:80"
+    volumes:
+    - ./backend:/code
 
 volumes:
   db_data:

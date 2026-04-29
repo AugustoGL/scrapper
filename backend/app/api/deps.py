@@ -11,7 +11,7 @@ from app.services.user_service import get_user_by_id
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
-oauth2 = OAuth2PasswordBearer(tokenUrl="auth/login/")
+oauth2 = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 TokenDep = Annotated[str, Depends(oauth2)]
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:

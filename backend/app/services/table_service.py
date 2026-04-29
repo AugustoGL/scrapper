@@ -12,10 +12,21 @@ def get_tables(session: Session, user: User) -> List[Table]:
     return session.execute(statement).unique().scalars().all()
 
 def create_table(session: Session, id_user: int, table: CreateTable) -> Table:
-    new_table = Table(**table.model_dump(), id_user=id_user, creation_at=datetime.now())
+    new_table: Table = Table(name=table.name, id_user=id_user, creation_at=datetime.now())
     session.add(new_table)
+    session.flush()
+
+    for column in table.columns:
+        
+        new_column = TableColumn(
+            **column.model_dump(),
+            id_table = new_table.id_table
+        )
+        session.add(new_column)
+        
     session.commit()
     session.refresh(new_table)
+    
     return new_table
 
 def get_table(session: Session, user: User, id_table: int) -> Table:
