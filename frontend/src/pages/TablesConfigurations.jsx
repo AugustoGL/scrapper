@@ -1,84 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Header from "../components/header/Header.jsx";
-import { Flex, theme, Button, Modal, Form, Input, Select, Divider, Tag, Table, Skeleton } from "antd";
-import { PlusOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Flex, theme, Button, Modal, Form, Input, Select, Divider, Tag, Skeleton, Alert, Empty } from "antd";
+import { PlusOutlined, DeleteOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import SelectableCardTable from "../components/selectableCard/SelectableCardTable.jsx";
 import { COLUMN_TYPES_SELECT, COLUMN_TYPES } from "../columnTypes.js";
-import { getTables, getTableById, getRowsByTableId } from "../../shared/mock/db.js";
 import TableDetail from "../components/tableDetail/TableDetail.jsx";
-
+import { useTables, useTableDetail } from "../hooks/useTable.js";
 
 const EMPTY_COLUMN = { nombre: "", descripcion: "", tipo: null };
 
 export default function TablesConfigurations() {
-    const [tables, setTables] = useState([]);
-    const [loadingTables, setLoadingTables] = useState(true);
-    const [selected, setSelected] = useState(null);
-    const [selectedTable, setSelectedTable] = useState(null);
-    const [tableRows, setTableRows] = useState(null);
-    const [loadingTable, setLoadingTable] = useState(false);
-    const [open, setOpen] = useState(false);
-    const [columns, setColumns] = useState([{ ...EMPTY_COLUMN }]);
-    const [form] = Form.useForm();
     const { token } = theme.useToken();
+    const [form] = Form.useForm();
+    const [open, setOpen]       = useState(false);
+    const [columns, setColumns] = useState([{ ...EMPTY_COLUMN }]);
+    const [saving, setSaving]   = useState(false);
 
-    // Carga inicial de tablas
-    useEffect(() => {
-        getTables().then(data => {
-            setTables(data);
-            setLoadingTables(false);
-        });
-    }, []);
+    const { tables, loadingTables, error, handleCreate, handleDelete } = useTables();
+    const { selected, selectedTable, loadingTable, errorDetail, handleSelect, handleBack } = useTableDetail();
 
-    const handleSelect = async (id) => {
-        if (id === selected) return;
-        setSelected(id);
-        setSelectedTable(null);
-        setTableRows(null);
-        setLoadingTable(true);
-        const [table, rows] = await Promise.all([
-            getTableById(id),
-            getRowsByTableId(id),
-        ]);
-        setSelectedTable(table);
-        setTableRows(rows);
-        setLoadingTable(false);
-    };
-
-    const handleBack = () => {
-        setSelected(null);
-        setSelectedTable(null);
-        setTableRows(null);
-    };
-
-    // Construye las columnas del Table de antd a partir de la estructura dinámica
-    const buildAntColumns = (table) => {
-        if (!table) return [];
-        return table.columns.map(col => ({
-            title: col.name,
-            key: col.id,
-            render: (_, record) => {
-                const cell = record.values.find(v => v.id_column === col.id);
-                if (cell === undefined) return "—";
-                if (col.type === 4) return cell.value ? "✓" : "✗";
-                if (col.type === 5) return <a href={cell.value} target="_blank" rel="noreferrer">Ver</a>;
-                return cell.value ?? "—";
-            },
-        }));
-    };
-
-    const buildAntRows = (rows) => {
-        if (!rows) return [];
-        return rows.records.map(r => ({ ...r, key: r.key }));
-    };
-
-    const handleAddColumn = () => setColumns(prev => [...prev, { ...EMPTY_COLUMN }]);
-
-    const handleRemoveColumn = (index) => setColumns(prev => prev.filter((_, i) => i !== index));
-
-    const handleColumnChange = (index, field, value) => {
-        setColumns(prev => prev.map((col, i) => i === index ? { ...col, [field]: value } : col));
-    };
+    const handleAddColumn    = () => setColumns(prev => [...prev, { ...EMPTY_COLUMN }]);
+    const handleRemoveColumn = (i) => setColumns(prev => prev.filter((_, idx) => idx !== i));
+    const handleColumnChange = (i, field, value) =>
+        setColumns(prev => prev.map((col, idx) => idx === i ? { ...col, [field]: value } : col));
 
     const handleClose = () => {
         setOpen(false);
@@ -86,12 +30,23 @@ export default function TablesConfigurations() {
         setColumns([{ ...EMPTY_COLUMN }]);
     };
 
-    const handleSave = () => {
-        form.validateFields().then(values => {
-            console.log({ nombre: values.nombre, columns });
-            handleClose();
+const handleSave = async () => {
+    const values = await form.validateFields();
+    setSaving(true);
+    try {
+        await handleCreate({
+            name: values.nombre,
+            columns: columns.map(col => ({
+                name: col.nombre,
+                data_type: String(col.tipo),
+                description: col.descripcion,
+            })),
         });
-    };
+        handleClose();
+    } finally {
+        setSaving(false);
+    }
+};
 
     return (
         <>
@@ -121,33 +76,39 @@ export default function TablesConfigurations() {
                     </Button>
                 </Flex>
 
+                {error && <Alert />}
+
                 {/* Cards */}
                 {!selected && (
                     loadingTables ? (
                         <Skeleton active paragraph={{ rows: 3 }} />
+                    ) : tables.length === 0 ? (
+                        <Empty description="No hay tablas creadas todavía" />
                     ) : (
                         <Flex wrap gap={25}>
                             {tables.map((table) => (
                                 <SelectableCardTable
-                                    id={table.id}
-                                    title={table.title}
+                                    key={table.id_table}
+                                    id={table.id_table}
+                                    title={table.name}
                                     tags={table.columns}
                                     onSelect={handleSelect}
+                                    onDelete={handleDelete}
                                 />
                             ))}
                         </Flex>
                     )
                 )}
 
-                {/* Tabla */}
+                {/* Detalle */}
                 {selected && (
                     <Flex vertical gap={16}>
+                        {errorDetail && <Alert message="No se pudo cargar la tabla" type="error" showIcon />}
                         {loadingTable ? (
                             <Skeleton active paragraph={{ rows: 5 }} />
-                        ) : (
+                        ) : !selectedTable ? null : (
                             <TableDetail
                                 selectedTable={selectedTable}
-                                tableRows={tableRows}
                                 loading={loadingTable}
                             />
                         )}
@@ -163,6 +124,7 @@ export default function TablesConfigurations() {
                 onOk={handleSave}
                 okText="Crear tabla"
                 cancelText="Cancelar"
+                confirmLoading={saving}
                 width={620}
                 destroyOnHidden
             >

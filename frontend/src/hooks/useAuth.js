@@ -7,18 +7,18 @@ export const useAuth = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogin = async (credentials) => {
+const handleLogin = async (credentials) => {
     setLoading(true);
     setError(null);
     try {
-      await login(credentials);
-      navigate("/configuracion");
+        await login(credentials);
+        navigate("/configuracion");
     } catch (err) {
-      setError(err.message);
+        setError(err.message);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const handleRegister = async (userData) => {
     setLoading(true);

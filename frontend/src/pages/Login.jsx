@@ -1,18 +1,12 @@
 // pages/Login.jsx
-import { useState } from "react";
-import { Flex, Form, Input, Button, Divider, Typography, theme } from "antd";
+import { Flex, Form, Input, Button, Divider, Typography, theme, Alert } from "antd";
 import { GoogleOutlined, RocketOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
     const { token } = theme.useToken();
-    const [loading, setLoading] = useState(false);
-
-    const handleLogin = (values) => {
-        setLoading(true);
-        setTimeout(() => setLoading(false), 1500);
-        console.log(values);
-    };
+    const { handleLogin, loading, error } = useAuth();
 
     return (
         <Flex style={{ minHeight: "100vh", backgroundColor: token.colorBgLayout }} align="center" justify="center">
@@ -28,7 +22,6 @@ export default function Login() {
                     border: `1px solid ${token.colorBorderSecondary}`,
                 }}
             >
-                {/* Logo */}
                 <Flex vertical align="center" gap={8}>
                     <Flex
                         align="center"
@@ -52,7 +45,6 @@ export default function Login() {
                     </Typography.Text>
                 </Flex>
 
-                {/* Google */}
                 <Button size="large" icon={<GoogleOutlined />} block>
                     Continuar con Google
                 </Button>
@@ -63,14 +55,26 @@ export default function Login() {
                     </Typography.Text>
                 </Divider>
 
-                {/* Form */}
+                {error && (
+    <Alert
+        title={
+            error === "invalid_credentials"
+                ? "Email o contraseña incorrectos"
+                : "Ocurrió un error, intentá de nuevo"
+        }
+        type="error"
+        showIcon
+        style={{ marginBottom: -16 }}
+    />
+                )}
+
                 <Form layout="vertical" onFinish={handleLogin} requiredMark={false}>
                     <Form.Item
                         label="Email"
                         name="email"
                         rules={[
                             { required: true, message: "Ingresá tu email" },
-                            { type: "email",  message: "Email inválido" },
+                            { type: "email", message: "Email inválido" },
                         ]}
                     >
                         <Input size="large" placeholder="tu@email.com" />
@@ -106,9 +110,9 @@ export default function Login() {
 
                 <Typography.Text type="secondary" style={{ textAlign: "center", fontSize: 13 }}>
                     ¿No tenés cuenta?{" "}
-                    <Link to="/register">
-                        <Typography.Link>Registrate</Typography.Link>
-                    </Link>
+                    <Typography.Link onClick={() => navigate("/register")}>
+                        Registrate
+                    </Typography.Link>
                 </Typography.Text>
             </Flex>
         </Flex>
