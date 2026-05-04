@@ -96,6 +96,31 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Helper: obtiene el HTML de la pestaña activa.
+    // Intenta primero con sendMessage; si el content script no está inyectado,
+    // lo inyecta programáticamente y vuelve a intentarlo.
+    function getPageHtml(tab, callback) {
+        chrome.tabs.sendMessage(tab.id, { type: "GET_HTML" }, function (response) {
+            if (chrome.runtime.lastError || !response || !response.html) {
+                // Content script no estaba inyectado → inyectarlo ahora
+                chrome.scripting.executeScript(
+                    { target: { tabId: tab.id }, files: ["content.js"] },
+                    function () {
+                        if (chrome.runtime.lastError) {
+                            callback(null);
+                            return;
+                        }
+                        chrome.tabs.sendMessage(tab.id, { type: "GET_HTML" }, function (resp2) {
+                            callback(resp2 && resp2.html ? resp2.html : null);
+                        });
+                    }
+                );
+            } else {
+                callback(response.html);
+            }
+        });
+    }
+
     btnExtract.addEventListener("click", function () {
         var instructionVal = instruction.value.trim();
         var tableId = tableSelect.value;
@@ -107,18 +132,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabsList) {
             var tab = tabsList[0];
-            chrome.tabs.sendMessage(tab.id, { type: "GET_HTML" }, function (response) {
-                if (!response || !response.html) {
+            getPageHtml(tab, function (html) {
+                if (!html) {
                     setLog("Error al capturar la página.", "err");
                     btnExtract.classList.remove("loading");
                     btnExtract.disabled = false;
                     return;
                 }
-                var cleaned = cleanHtml(response.html);
+
+                var cleaned = cleanHtml(html);
                 setLog("Extrayendo datos...", "warn");
+
                 extractData(cleaned, instructionVal, tableId)
                     .then(function (result) {
                         if (!result.ok) throw new Error(result.data.detail || "Error al extraer");
+                        console.log("Respuesta del backend:", result.data);
                         setLog("Extracción completada.", "ok");
                     })
                     .catch(function (err) {
@@ -135,9 +163,9 @@ document.addEventListener("DOMContentLoaded", function () {
     btnHtml.addEventListener("click", function () {
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabsList) {
             var tab = tabsList[0];
-            chrome.tabs.sendMessage(tab.id, { type: "GET_HTML" }, function (response) {
-                if (!response || !response.html) return;
-                var blob = new Blob([response.html], { type: "text/html" });
+            getPageHtml(tab, function (html) {
+                if (!html) return;
+                var blob = new Blob([html], { type: "text/html" });
                 chrome.tabs.create({ url: URL.createObjectURL(blob) });
             });
         });
@@ -158,26 +186,79 @@ document.addEventListener("DOMContentLoaded", function () {
 function cleanHtml(html) {
     var parser = new DOMParser();
     var doc = parser.parseFromString(html, "text/html");
-    var remove = [
+
+    // 1. Elementos que nunca aportan contenido útil
+    var removeSelectors = [
+        // Tags estructurales sin contenido dinámico
         "script", "style", "head", "link", "meta", "title",
         "nav", "footer", "header", "aside", "noscript", "iframe",
         "svg", "canvas", "form", "button", "input", "select", "textarea",
+        "label", "video", "audio", "source", "track", "map", "area",
+        // Roles ARIA de navegación/decoración
         "[role='navigation']", "[role='banner']", "[role='contentinfo']",
+        "[role='dialog']", "[role='alertdialog']", "[role='tooltip']",
+        // Clases comunes de ruido
         ".navbar", ".nav", ".header", ".footer", ".sidebar", ".menu",
         ".cookie", ".ad", ".ads", ".modal", ".overlay", ".popup",
-        ".breadcrumb", ".pagination", ".toast", ".notification"
+        ".breadcrumb", ".pagination", ".toast", ".notification",
+        ".newsletter", ".subscribe", ".login-incentive",
+        // Elementos ocultos / inert (calendarios, dropdowns, etc.)
+        "[inert]", "[hidden]", "[aria-hidden='true']",
+        // Componentes específicos de SPAs de viajes (Despegar, etc.)
+        "shopping-cart-component", "modals-container", "loader",
+        "loyalty-switch", "loyalty-info", "loyalty-offer-info",
+        "event-dispatcher"
     ];
-    doc.querySelectorAll(remove.join(",")).forEach(function (el) { el.remove(); });
+    doc.querySelectorAll(removeSelectors.join(",")).forEach(function (el) {
+        el.remove();
+    });
+
+    // 2. Limpiar TODOS los atributos excepto href, src, alt
     doc.querySelectorAll("*").forEach(function (el) {
-        ["class", "id", "style", "onclick", "onload", "data-v",
-            "aria-label", "aria-hidden", "tabindex", "role"].forEach(function (attr) {
-                el.removeAttribute(attr);
-            });
-        Array.from(el.attributes).forEach(function (a) {
-            if (a.name.startsWith("data-") || a.name.startsWith("on")) {
+        var attrs = Array.from(el.attributes);
+        attrs.forEach(function (a) {
+            var name = a.name.toLowerCase();
+            if (name !== "href" && name !== "src" && name !== "alt") {
                 el.removeAttribute(a.name);
             }
         });
     });
-    return doc.body.innerHTML;
+
+    // 3. Eliminar tags vacíos recursivamente (i, span, div, em, strong, p, ul, li, etc. sin contenido)
+    var emptyTags = ["div", "span", "i", "em", "strong", "b", "p", "ul", "ol", "li", "a", "section", "article", "main"];
+    var changed = true;
+    while (changed) {
+        changed = false;
+        emptyTags.forEach(function (tag) {
+            doc.querySelectorAll(tag).forEach(function (el) {
+                // Vacío = sin texto ni hijos con contenido (ignorar whitespace)
+                var text = el.textContent.trim();
+                var hasImg = el.querySelector("img");
+                var hasLink = el.tagName === "A" && el.getAttribute("href");
+                if (!text && !hasImg && !hasLink) {
+                    el.remove();
+                    changed = true;
+                }
+            });
+        });
+    }
+
+    // 4. Desempaquetar tags wrapper sin semántica (div, span sin atributos con un solo hijo)
+    doc.querySelectorAll("div, span").forEach(function (el) {
+        if (el.attributes.length === 0 && el.children.length === 1 && el.textContent.trim() === el.children[0].textContent.trim()) {
+            el.replaceWith(el.children[0]);
+        }
+    });
+
+    var result = doc.body.innerHTML;
+
+    // 5. Eliminar comentarios HTML (incluyendo <!---->  de Angular)
+    result = result.replace(/<!--[\s\S]*?-->/g, "");
+
+    // 6. Colapsar whitespace excesivo
+    result = result.replace(/\s{2,}/g, " ");
+    result = result.replace(/>\s+</g, "><");
+    result = result.trim();
+
+    return result;
 }

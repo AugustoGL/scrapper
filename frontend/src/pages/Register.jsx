@@ -25,7 +25,6 @@ export default function Register() {
 
     const handleVerify = (values) => {
         setLoading(true);
-        console.log("Código ingresado:", values.code);
         setTimeout(() => setLoading(false), 1500);
     };
 

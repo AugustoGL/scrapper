@@ -10,7 +10,6 @@ const loadTables = useCallback(async () => {
     setError(null);
     try {
         const data = await fetchTables();
-        console.log("Tables response:", data);
         setTables(data);
     } catch (err) {
         console.error("Tables error:", err);

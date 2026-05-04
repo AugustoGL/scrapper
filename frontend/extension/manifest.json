@@ -11,11 +11,12 @@
         "storage",
         "activeTab",
         "scripting",
-        "tabs"
+        "tabs",
+        "downloads"
     ],
     "content_scripts": [
         {
-            "matches": ["http://localhost/*"],
+            "matches": ["http://*/*", "https://*/*"],
             "js": ["content.js"]
         }
     ],
