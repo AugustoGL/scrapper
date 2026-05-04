@@ -22,3 +22,18 @@ function getTables() {
         });
     });
 }
+
+function extractData(html, instruction, tableId) {
+    return getToken().then(token => {
+        return fetch(`${BASE_URL}/api/v1/extract/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({ html: html, instruction: instruction, table_id: tableId }),
+        }).then(res => {
+            return res.json().then(data => ({ ok: res.ok, data: data }));
+        });
+    });
+}

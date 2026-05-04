@@ -97,21 +97,37 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     btnExtract.addEventListener("click", function () {
+        var instructionVal = instruction.value.trim();
+        var tableId = tableSelect.value;
+        if (!instructionVal || !tableId) return;
+
+        btnExtract.disabled = true;
         btnExtract.classList.add("loading");
         setLog("Capturando página...", "warn");
+
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabsList) {
             var tab = tabsList[0];
             chrome.tabs.sendMessage(tab.id, { type: "GET_HTML" }, function (response) {
                 if (!response || !response.html) {
                     setLog("Error al capturar la página.", "err");
                     btnExtract.classList.remove("loading");
+                    btnExtract.disabled = false;
                     return;
                 }
                 var cleaned = cleanHtml(response.html);
-                var blob = new Blob([cleaned], { type: "text/html" });
-                chrome.tabs.create({ url: URL.createObjectURL(blob) });
-                setLog("HTML limpio abierto en nueva pestaña.", "ok");
-                btnExtract.classList.remove("loading");
+                setLog("Extrayendo datos...", "warn");
+                extractData(cleaned, instructionVal, tableId)
+                    .then(function (result) {
+                        if (!result.ok) throw new Error(result.data.detail || "Error al extraer");
+                        setLog("Extracción completada.", "ok");
+                    })
+                    .catch(function (err) {
+                        setLog(err.message, "err");
+                    })
+                    .finally(function () {
+                        btnExtract.classList.remove("loading");
+                        btnExtract.disabled = false;
+                    });
             });
         });
     });
@@ -121,14 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
             var tab = tabsList[0];
             chrome.tabs.sendMessage(tab.id, { type: "GET_HTML" }, function (response) {
                 if (!response || !response.html) return;
-                var escaped = response.html
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;");
-                var html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>HTML - " + tab.title + "</title>"
-                    + "<style>body{margin:0;background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:12px;line-height:1.7;padding:20px;white-space:pre-wrap;word-break:break-all;}</style>"
-                    + "</head><body>" + escaped + "</body></html>";
-                var blob = new Blob([html], { type: "text/html" });
+                var blob = new Blob([response.html], { type: "text/html" });
                 chrome.tabs.create({ url: URL.createObjectURL(blob) });
             });
         });
