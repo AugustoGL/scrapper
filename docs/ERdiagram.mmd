@@ -6,7 +6,8 @@ erDiagram
     Table ||--o{ Record: has
     Record ||--o{ Value: has
     Column ||--o{ Value: has
-
+    Processing }o--|| Table: has
+    Processing ||--o{ Record: has
 
     User {
         int id_user PK
@@ -18,20 +19,30 @@ erDiagram
     Table {
         int id_table PK
         string name
-        date creation_at
+        datetime creation_at
         int id_user FK
     }
 
     Column {
-        int column_id PK
+        int id_column PK
         string name
         string data_type
+        int id_table FK
+    }
+
+    Processing {
+        int id_processing PK
+        str status
+        datetime creation_at
+        error_message: str
+        error_detail: str
         int id_table FK
     }
 
     Record {
         int id_record PK
         date creation_at
+        int id_processing FK
         int id_table FK
     }
 
