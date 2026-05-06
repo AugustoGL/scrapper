@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # Security
     DEBUG: bool = False
     SECRET_KEY: str
+    GEMINI_API_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
     # Database
