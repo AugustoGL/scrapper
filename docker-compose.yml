@@ -10,9 +10,8 @@ services:
       POSTGRES_DB: scrapper
     expose: 
     - "5432"
-    # Si queres exponer la db
-    #ports:
-    #  - "5432:5432"
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
 
