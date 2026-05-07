@@ -19,7 +19,7 @@ def get_tables(session: Session, user: User) -> List[Table]:
     return session.execute(statement).unique().scalars().all()
 
 def create_table(session: Session, id_user: int, table: CreateTable) -> Table:
-    new_table: Table = Table(name=table.name, id_user=id_user, creation_at=datetime.now())
+    new_table: Table = Table(name=table.name, id_user=id_user, created_at=datetime.now())
     session.add(new_table)
     session.flush()
 
@@ -111,7 +111,9 @@ def init_processing(
     
     new_processing = Processing(
         status=ProcessingStatus.PENDING,
-        creation_at=datetime.now(),
+        created_at=datetime.now(),
+        started_at=None,
+        finished_at=None,
         error_message=None,
         error_detail=None,
         id_table=id_table
@@ -131,6 +133,11 @@ def run_extraction(id_processing: int, id_table: int, processHtmlRequest: Proces
     session = SessionLocal()
     try:
         processing = session.get(Processing, id_processing)
+        processing.status = ProcessingStatus.PROCESSING
+        processing.started_at = datetime.now()
+        session.add(processing)
+        session.commit()
+        
         statement = select(TableColumn).where(
             TableColumn.id_table == id_table,
         )
@@ -147,6 +154,7 @@ def run_extraction(id_processing: int, id_table: int, processHtmlRequest: Proces
             print("BACKGROUND TASK: Error request to AI API")
             processing.status = ProcessingStatus.FAILED
         
+        processing.finished_at = datetime.now()
         processing.error_message = error_message
         processing.error_detail = error_detail
         
@@ -175,7 +183,7 @@ def _do_extraction(columns: List[dict], processHtmlRequest: ProcessHtmlRequest) 
 def _persist_result(session: Session, processing: Processing, result: ExtractionResult) -> None:
     for extracted_record in result.records:
         record = Record(
-            creation_at=datetime.now(),
+            created_at=datetime.now(),
             id_table=processing.id_table,
             id_processing=processing.id_processing,
         )

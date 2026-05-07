@@ -24,7 +24,7 @@ class Table(Base):
 
     id_table = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    creation_at = Column(DateTime)
+    created_at = Column(DateTime)
 
     id_user = Column(Integer, ForeignKey("Users.id_user"))
 
@@ -52,7 +52,7 @@ class Record(Base):
     __tablename__ = "Records"
 
     id_record = Column(Integer, primary_key=True,)
-    creation_at = Column(DateTime)
+    created_at = Column(DateTime)
     id_table = Column(Integer, ForeignKey("Tables.id_table"))
     id_processing = Column(Integer, ForeignKey("Processing.id_processing"))
 
@@ -79,7 +79,9 @@ class Processing(Base):
     
     id_processing = Column(Integer, primary_key=True)
     status = Column(Enum(ProcessingStatus), nullable=False)
-    creation_at = Column(DateTime)
+    created_at = Column(DateTime)
+    started_at = Column(DateTime, nullable=True)
+    finished_at = Column(DateTime, nullable=True)
     error_message: str | None = Column(String, nullable=True)
     error_detail: str | None = Column(String, nullable=True) 
     id_table = Column(Integer, ForeignKey("Tables.id_table"))

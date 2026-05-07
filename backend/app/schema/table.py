@@ -12,7 +12,7 @@ class ReadValue(BaseModel):
 class ReadRecord(BaseModel):
     id_record: int
     values: List[ReadValue]
-    creation_at: datetime
+    created_at: datetime
 
 class ReadColumn(BaseModel):
     id_column: int
@@ -36,19 +36,22 @@ class UpdateColumn(CreateColumn):
 class ReadProcessing(BaseModel):
     id_processing: int
     status: str
-    creation_at: datetime
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
     error_message: str | None
     id_table: int
 
 class ProcessingStatus(str, Enum):
     PENDING = "pending"
+    PROCESSING = "processing"
     FAILED = "failed"
     COMPLETED = "completed"
 
 class ReadTable(BaseModel):
     id_table: int
     name: str
-    creation_at: datetime
+    created_at: datetime
     columns : List[ReadColumn]
     processings: List[ReadProcessing]
     

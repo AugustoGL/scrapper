@@ -19,7 +19,7 @@ erDiagram
     Table {
         int id_table PK
         string name
-        datetime creation_at
+        datetime created_at
         int id_user FK
     }
 
@@ -33,7 +33,9 @@ erDiagram
     Processing {
         int id_processing PK
         str status
-        datetime creation_at
+        datetime created_at
+        date started_at
+        date finished_at
         error_message: str
         error_detail: str
         int id_table FK
@@ -41,7 +43,7 @@ erDiagram
 
     Record {
         int id_record PK
-        date creation_at
+        date created_at
         int id_processing FK
         int id_table FK
     }
