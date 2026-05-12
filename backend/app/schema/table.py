@@ -70,6 +70,7 @@ class UpdateTable(CreateTable):
 
 class ProcessHtmlRequest(BaseModel):
     html: str
+    extra_instructions: str | None
     
     @field_validator("html")
     @classmethod

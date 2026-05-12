@@ -170,6 +170,7 @@ def run_extraction(id_processing: int, id_table: int, processHtmlRequest: Proces
 def _do_extraction(columns: List[dict], processHtmlRequest: ProcessHtmlRequest) -> tuple[ExtractionResult | None, str | None, str | None]:
     try:
         result = extract_from_html(
+            extra_instructions=processHtmlRequest.extra_instructions,
             html=processHtmlRequest.html,
             columns=columns,
         )
