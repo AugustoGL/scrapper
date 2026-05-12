@@ -20,3 +20,10 @@ export const updateTable = (id, payload) =>
 
 export const deleteTable = (id) =>
     api(`/api/v1/tables/${id}`, { method: "DELETE" });
+
+// ✅ Agregado: endpoint Init Processing
+export const initProcessing = (id, payload) =>
+    api(`/api/v1/tables/${id}/processing`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });

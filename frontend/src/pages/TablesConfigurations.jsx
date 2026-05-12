@@ -30,23 +30,33 @@ export default function TablesConfigurations() {
         setColumns([{ ...EMPTY_COLUMN }]);
     };
 
-const handleSave = async () => {
-    const values = await form.validateFields();
-    setSaving(true);
-    try {
-        await handleCreate({
-            name: values.nombre,
-            columns: columns.map(col => ({
-                name: col.nombre,
-                data_type: String(col.tipo),
-                description: col.descripcion,
-            })),
-        });
-        handleClose();
-    } finally {
-        setSaving(false);
-    }
-};
+    const handleSave = async () => {
+        // ✅ Corregido: si validateFields lanza, no continúa ni congela el botón
+        let values;
+        try {
+            values = await form.validateFields();
+        } catch {
+            return; // validación fallida, Ant Design ya muestra los mensajes
+        }
+
+        setSaving(true);
+        try {
+            await handleCreate({
+                name: values.nombre,
+                columns: columns.map(col => ({
+                    name: col.nombre,
+                    data_type: String(col.tipo),
+                    description: col.descripcion,
+                })),
+            });
+            handleClose();
+        } catch {
+            // ✅ Corregido: el error ya lo maneja useTables con setError,
+            // acá solo nos aseguramos de que saving vuelva a false
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <>
@@ -76,7 +86,16 @@ const handleSave = async () => {
                     </Button>
                 </Flex>
 
-                {error && <Alert />}
+                {/* ✅ Corregido: Alert con mensaje y tipo */}
+                {error && (
+                    <Alert
+                        message="Ocurrió un error"
+                        description={error}
+                        type="error"
+                        showIcon
+                        closable
+                    />
+                )}
 
                 {/* Cards */}
                 {!selected && (
@@ -126,7 +145,7 @@ const handleSave = async () => {
                 cancelText="Cancelar"
                 confirmLoading={saving}
                 width={620}
-                destroyOnHidden
+                destroyOnClose  // ✅ Corregido: era destroyOnHidden, prop correcta es destroyOnClose
             >
                 <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
                     <Form.Item

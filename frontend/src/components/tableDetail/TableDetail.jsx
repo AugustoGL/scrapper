@@ -1,5 +1,3 @@
-// TableDetail.jsx — reemplazá buildAntColumns completo
-
 import { useRef, useState } from "react";
 import { Flex, Tag, Table, Skeleton, Input, Button, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
@@ -12,24 +10,28 @@ const buildAntColumns = (table, { searchText, searchedColumn, searchInput, handl
     return table.columns.map(col => {
         const base = {
             title: col.name,
-            key: col.id,
+            // ✅ Corregido: col.id → col.id_column
+            key: col.id_column,
+            dataIndex: col.id_column,
             render: (_, record) => {
-                const cell = record.values.find(v => v.id_column === col.id);
+                // ✅ Corregido: col.id → col.id_column
+                const cell = record.values.find(v => v.id_column === col.id_column);
                 if (cell === undefined) return "—";
-                if (col.type === 4) return cell.value ? "✓" : "✗";
-                if (col.type === 5) return <a href={cell.value} target="_blank" rel="noreferrer">Ver</a>;
+                // ✅ Corregido: col.type → col.data_type (comparar con string)
+                if (col.data_type === "4") return cell.value ? "✓" : "✗";
+                if (col.data_type === "5") return <a href={cell.value} target="_blank" rel="noreferrer">Ver</a>;
                 return cell.value ?? "—";
             },
         };
 
         // Tipo 1 — Texto: buscador
-        if (col.type === 1) {
+        if (col.data_type === "1") {
             return {
                 ...base,
                 render: (_, record) => {
-                    const cell = record.values.find(v => v.id_column === col.id);
+                    const cell = record.values.find(v => v.id_column === col.id_column);
                     const text = cell?.value ?? "";
-                    return searchedColumn === col.id ? (
+                    return searchedColumn === col.id_column ? (
                         <Highlighter
                             highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
                             searchWords={[searchText]}
@@ -47,15 +49,15 @@ const buildAntColumns = (table, { searchText, searchedColumn, searchInput, handl
                             onChange={e => {
                                 const val = e.target.value;
                                 setSelectedKeys(val ? [val] : []);
-                                handleSearch(val ? [val] : [], confirm, col.id); // busca al escribir
+                                handleSearch(val ? [val] : [], confirm, col.id_column);
                             }}
-                            onPressEnter={() => handleSearch(selectedKeys, confirm, col.id)}
+                            onPressEnter={() => handleSearch(selectedKeys, confirm, col.id_column)}
                             style={{ marginBottom: 8, display: "block" }}
                         />
                         <Space>
                             <Button
                                 type="primary"
-                                onClick={() => { handleSearch(selectedKeys, confirm, col.id); close() }}
+                                onClick={() => { handleSearch(selectedKeys, confirm, col.id_column); close(); }}
                                 icon={<SearchOutlined />}
                                 size="small"
                                 style={{ width: 90 }}
@@ -64,10 +66,10 @@ const buildAntColumns = (table, { searchText, searchedColumn, searchInput, handl
                             </Button>
                             <Button
                                 onClick={() => {
-                                    handleReset(clearFilters);   // limpia filtro de ant + searchText
-                                    setSelectedKeys([]);          // vacía el input visualmente
-                                    confirm({ closeDropdown: false }); // reaplica sin filtro
-                                    setSearchedColumn("");        // saca el highlight
+                                    handleReset(clearFilters);
+                                    setSelectedKeys([]);
+                                    confirm({ closeDropdown: false });
+                                    setSearchedColumn("");
                                 }}
                                 size="small"
                                 style={{ width: 90 }}
@@ -82,7 +84,7 @@ const buildAntColumns = (table, { searchText, searchedColumn, searchInput, handl
                 ),
                 filterIcon: filtered => <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />,
                 onFilter: (value, record) => {
-                    const cell = record.values.find(v => v.id_column === col.id);
+                    const cell = record.values.find(v => v.id_column === col.id_column);
                     return cell?.value?.toString().toLowerCase().includes(value.toLowerCase()) ?? false;
                 },
                 filterDropdownProps: {
@@ -94,14 +96,13 @@ const buildAntColumns = (table, { searchText, searchedColumn, searchInput, handl
         }
 
         // Tipo 2 — Número / Tipo 3 — Fecha: ordenamiento
-        if (col.type === 2 || col.type === 3) {
+        if (col.data_type === "2" || col.data_type === "3") {
             return {
                 ...base,
                 sorter: (a, b) => {
-                    const cellA = a.values.find(v => v.id_column === col.id)?.value;
-                    const cellB = b.values.find(v => v.id_column === col.id)?.value;
-                    if (col.type === 2) return (Number(cellA) || 0) - (Number(cellB) || 0);
-                    // Fecha: comparación lexicográfica (ISO) o por Date
+                    const cellA = a.values.find(v => v.id_column === col.id_column)?.value;
+                    const cellB = b.values.find(v => v.id_column === col.id_column)?.value;
+                    if (col.data_type === "2") return (Number(cellA) || 0) - (Number(cellB) || 0);
                     return new Date(cellA) - new Date(cellB);
                 },
                 sortDirections: ["ascend", "descend"],
@@ -109,7 +110,7 @@ const buildAntColumns = (table, { searchText, searchedColumn, searchInput, handl
         }
 
         // Tipo 4 — Booleano: filtro
-        if (col.type === 4) {
+        if (col.data_type === "4") {
             return {
                 ...base,
                 filters: [
@@ -117,22 +118,24 @@ const buildAntColumns = (table, { searchText, searchedColumn, searchInput, handl
                     { text: "✗ No", value: false },
                 ],
                 onFilter: (value, record) => {
-                    const cell = record.values.find(v => v.id_column === col.id);
+                    const cell = record.values.find(v => v.id_column === col.id_column);
                     return cell?.value === value;
                 },
             };
         }
 
-        return base; // Tipo 5 — URL: sin filtro ni orden
+        return base;
     });
 };
 
-const buildAntRows = (rows) => {
-    if (!rows) return [];
-    return rows.records.map(r => ({ ...r, key: r.key }));
+// ✅ Corregido: recibe el array directo, usa id_record como key
+const buildAntRows = (records) => {
+    if (!records || !Array.isArray(records)) return [];
+    return records.map(r => ({ ...r, key: r.id_record }));
 };
 
-export default function TableDetail({ selectedTable, tableRows, loading }) {
+// ✅ Corregido: ya no recibe tableRows como prop separada — los records vienen dentro de selectedTable
+export default function TableDetail({ selectedTable, loading }) {
     const [searchText, setSearchText] = useState("");
     const [searchedColumn, setSearchedColumn] = useState("");
     const searchInput = useRef(null);
@@ -156,11 +159,12 @@ export default function TableDetail({ selectedTable, tableRows, loading }) {
             ) : (
                 <Table
                     columns={buildAntColumns(selectedTable, searchProps)}
-                    dataSource={buildAntRows(tableRows)}
+                    // ✅ Corregido: selectedTable.records en lugar de tableRows.records
+                    dataSource={buildAntRows(selectedTable?.records)}
                     pagination={{ pageSize: 10 }}
                     size="middle"
-                    scroll={{ x: "max-content" }}   // scroll horizontal cuando no entran las columnas
-                    sticky={{ offsetScroll: 0 }}    // scrollbar fijada al viewport (footer)
+                    scroll={{ x: "max-content" }}
+                    sticky={{ offsetScroll: 0 }}
                 />
             )}
         </Flex>
