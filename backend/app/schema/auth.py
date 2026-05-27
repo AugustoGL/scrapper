@@ -16,6 +16,7 @@ class LoginRequest(BaseModel):
 class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
+    VERIFY = "verify"
 
 
 class TokenPair(BaseModel):

@@ -7,9 +7,22 @@ from app.core.db import get_session
 from app.models import User
 from app.schema.auth import TokenType
 from app.services.user_service import get_user_by_id
+from app.repository.user_repository import UserRepository
+from app.services.auth_service import AuthService
+
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
+def get_user_repository(session: SessionDep):
+    return UserRepository(session)
+
+UserRepoDep = Annotated[UserRepository, Depends(get_user_repository)]
+
+def get_auth_service(repo: UserRepoDep):
+    return AuthService(repo)
+
+AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 
 oauth2 = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 TokenDep = Annotated[str, Depends(oauth2)]

@@ -4,7 +4,7 @@ from jwt import PyJWTError
 from passlib.context import CryptContext
 from .config import settings
 from app.schema.auth import TokenType
-
+from ..exceptions.exceptions import InvalidTokenError
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
@@ -16,11 +16,9 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_token(type_token: TokenType, user_id: int, expires_delta: timedelta):
+def create_token(payload: dict, expires_delta: timedelta):
     expire = datetime.now(timezone.utc) + expires_delta
-    payload = {
-        "sub": str(user_id), "type": type_token.value, "exp": expire
-    }
+    payload["exp"] = expire
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_token(token: str):
@@ -31,16 +29,20 @@ def decode_token(token: str):
             algorithms=[ALGORITHM]
         )
         return payload
-    except PyJWTError:
+    except PyJWTError as e:
         return None
     
-def verify_token(token: str, expected_type: TokenType | None = None):
+def verify_token(token: str, expected_type: TokenType) -> None:
     payload = decode_token(token)
 
     if not payload:
-        return False
+        raise InvalidTokenError("Invalid token.")
 
     if payload.get("type") != expected_type.value:
-        return False
+        raise InvalidTokenError("Invalid token. A different type of token was expected.")
 
-    return True
+    exp = payload.get("exp")
+    now = datetime.now().timestamp()
+
+    if now > exp:
+        raise InvalidTokenError("Invalid token. Token already expired.")

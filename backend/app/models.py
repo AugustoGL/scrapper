@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from app.core.base import Base
 from app.schema.table import ProcessingStatus
@@ -12,6 +12,7 @@ class User(Base):
     username = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
 
     tables = relationship("Table", back_populates="user", cascade='all, delete')
     

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status
-from app.api.deps import SessionDep, TokenDep
+from app.api.deps import AuthServiceDep, TokenDep, SessionDep
 from app.services.auth_service import register_user, login_user, refresh_tokens
 from app.schema.auth import RegisterRequest, LoginRequest, TokenPair
 
@@ -15,8 +15,17 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     - Does not return tokens
     - Use `/login` after registration to obtain tokens"""
 )
-def register(session: SessionDep, data_user: RegisterRequest):
-    register_user(session=session, data_user=data_user)
+def register(auth_service: AuthServiceDep, data_user: RegisterRequest):
+    auth_service.register_user(data_user)
+
+@router.post(
+    "/verify-user",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Verifiy email user with token"
+)
+def verify_user(auth_service: AuthServiceDep, token: str):
+    auth_service.verify_user(token)
+
 
 @router.post(
     "/login",

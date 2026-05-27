@@ -19,6 +19,14 @@ class Settings(BaseSettings):
     DB_PORT: int
     DB_NAME: str
     DB_URL: str | None = None
+    # Email
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+    FROM_EMAIL: str
+    FRONTEND_URL: str
+    FRONTEND_VERIFY_EMAIL_PATH: str
     
     @property
     def DATABASE_URL(self):

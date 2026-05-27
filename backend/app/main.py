@@ -1,9 +1,11 @@
 from fastapi import FastAPI
+import uvicorn
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.db import test_connection
 from app.api.router import api_router
+from app.exceptions.exception_handler import register_exception_handlers
 
 
 
@@ -27,6 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+register_exception_handlers(app)
 app.include_router(api_router)
 
 @app.get(
@@ -37,3 +40,6 @@ app.include_router(api_router)
 )
 def health():
     return {"status": "ok"}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
