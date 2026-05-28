@@ -18,7 +18,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_token(payload: dict, expires_delta: timedelta):
     expire = datetime.now(timezone.utc) + expires_delta
-    payload["exp"] = expire
+    payload["exp"] = int(expire.timestamp())
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_token(token: str):

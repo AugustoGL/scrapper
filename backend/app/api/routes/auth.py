@@ -1,6 +1,5 @@
 from fastapi import APIRouter, status
-from app.api.deps import AuthServiceDep, TokenDep, SessionDep
-from app.services.auth_service import register_user, login_user, refresh_tokens
+from app.api.deps import AuthServiceDep, TokenDep
 from app.schema.auth import RegisterRequest, LoginRequest, TokenPair
 
 
@@ -43,8 +42,8 @@ def verify_user(auth_service: AuthServiceDep, token: str):
     Use the access token in protected endpoints:
     (Header)Authorization: Bearer <access_token>"""
 )
-def login(session: SessionDep, data_login: LoginRequest) -> TokenPair:
-    return login_user(session=session, data_login=data_login)
+def login(auth_service: AuthServiceDep, data: LoginRequest) -> TokenPair:
+    return auth_service.login(data)
 
 @router.post(
     "/refresh",
@@ -71,5 +70,5 @@ def login(session: SessionDep, data_login: LoginRequest) -> TokenPair:
     - Access tokens are short-lived
     """
 )
-def refresh_access_token(refresh_token: TokenDep) -> TokenPair:
-    return refresh_tokens(refresh_token)
+def refresh_access_token(auth_service: AuthServiceDep, refresh_token: TokenDep) -> TokenPair:
+    return auth_service.refresh_token(refresh_token)

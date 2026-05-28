@@ -1,11 +1,15 @@
 class AppError(Exception):
-    pass
+    detail = "Application Error"
+
 
 class NotFoundError(AppError):
     pass
 
 class ConflictError(AppError):
     pass
+
+class AuthenticationError(AppError):
+    detail = "Authentication failed. Invalid credentials"
 
 class ValidationError(AppError):
     pass

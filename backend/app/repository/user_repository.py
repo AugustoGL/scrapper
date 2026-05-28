@@ -11,6 +11,10 @@ class UserRepository:
     def find_by_id(self, id_user: int) -> User | None:
         return self.session.get(User, id_user)
 
+    def find_by_email(self, email: str) -> User | None:
+        statement = select(User).where(User.email == email)
+        return self.session.execute(statement).scalars().first()
+
     def exists_by_email(self, email: str) -> bool:
         stmt = select(exists().where(User.email == email))
         return bool(self.session.scalar(stmt))
