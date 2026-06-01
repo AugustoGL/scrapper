@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
+    VERIFY_TOKEN_EXPIRE_MINUTES: int
+    RESET_PASSWORD_TOKEN_EXPIRE_MINUTES: int
     # Database
     DB_USER: str
     DB_PASSWORD: str
@@ -27,7 +29,8 @@ class Settings(BaseSettings):
     FROM_EMAIL: str
     FRONTEND_URL: str
     FRONTEND_VERIFY_EMAIL_PATH: str
-    
+    FRONTEND_RESET_PASSWORD_PATH: str
+
     @property
     def DATABASE_URL(self):
         if self.DB_URL and self.DB_URL.strip():

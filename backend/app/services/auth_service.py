@@ -1,19 +1,17 @@
 from datetime import timedelta
-from fastapi import HTTPException, status
 
 from app.core.config import settings
 from app.core.security import hash_password, verify_password, create_token, verify_token, decode_token
 from app.repository.user_repository import UserRepository
-from .user_service import get_user_by_email, create_user
 from app.services.email_service import EmailService
-from app.schema.auth import RegisterRequest, LoginRequest, TokenType, TokenPair
+from app.schema.auth import RegisterRequest, LoginRequest, TokenType, TokenPair, ResetPasswordRequest
 from app.models import User
-from app.exceptions.exceptions import UserNotFoundError, ConflictError, AuthenticationError
+from app.exceptions.exceptions import UserNotFoundError, ConflictError, AuthenticationError, UserNotVerified
 
 
 class AuthService:
-    def __init__(self, repositosry: UserRepository):
-        self.repo = repositosry
+    def __init__(self, repository: UserRepository):
+        self.repo = repository
         self.email_service = EmailService()
         
     def register_user(self, data: RegisterRequest) -> None:
@@ -32,7 +30,7 @@ class AuthService:
                 "sub": str(saved_user.id_user),
                 "type": TokenType.VERIFY,
             },
-            timedelta(hours=1)
+            timedelta(minutes=settings.VERIFY_TOKEN_EXPIRE_MINUTES)
         )
         self.email_service.send_verification_email(saved_user.email, token)
 
@@ -59,6 +57,9 @@ class AuthService:
         if not is_valid_password:
             raise AuthenticationError()
 
+        if not user.is_verified:
+            raise UserNotVerified()
+
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
@@ -79,3 +80,28 @@ class AuthService:
 
         access_token = create_token(payload, access_token_expires)
         return TokenPair(access_token=access_token, refresh_token=refresh_token)
+
+    def forgot_password(self, email: str):
+        user = self.repo.find_by_email(email)
+        if not user:
+            return
+        payload = {
+            "sub": str(user.id_user),
+            "type": TokenType.RESET_PASSWORD
+        }
+        token_expires = timedelta(minutes=settings.RESET_PASSWORD_TOKEN_EXPIRE_MINUTES)
+        reset_password_token = create_token(payload, token_expires)
+        self.email_service.send_password_reset_email(user.email, reset_password_token)
+
+        user.reset_token = reset_password_token
+        self.repo.save(user)
+
+    def reset_password(self, data: ResetPasswordRequest):
+        verify_token(data.token, TokenType.RESET_PASSWORD)
+        payload = decode_token(data.token)
+        user = self.repo.find_by_id(payload["sub"])
+        if not user:
+            raise UserNotFoundError("User not found.")
+        hashed_password = hash_password(data.password)
+        user.password = hashed_password
+        self.repo.save(user)

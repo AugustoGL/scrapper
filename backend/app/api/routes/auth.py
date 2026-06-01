@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from app.api.deps import AuthServiceDep, TokenDep
-from app.schema.auth import RegisterRequest, LoginRequest, TokenPair
+from app.schema.auth import RegisterRequest, LoginRequest, TokenPair, ForgotPasswordRequest, ResetPasswordRequest, MessageResponse
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -12,7 +12,8 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     summary="Register a new user",
     description="""Create a new user account.
     - Does not return tokens
-    - Use `/login` after registration to obtain tokens"""
+    - Use `/login` after registration to obtain tokens
+    - Need to verify the user's email address."""
 )
 def register(auth_service: AuthServiceDep, data_user: RegisterRequest):
     auth_service.register_user(data_user)
@@ -72,3 +73,17 @@ def login(auth_service: AuthServiceDep, data: LoginRequest) -> TokenPair:
 )
 def refresh_access_token(auth_service: AuthServiceDep, refresh_token: TokenDep) -> TokenPair:
     return auth_service.refresh_token(refresh_token)
+
+@router.post(
+    "/forgot-password",
+    summary="Request password reset",
+    status_code=200)
+def forgot_password(auth_service: AuthServiceDep, data: ForgotPasswordRequest) -> MessageResponse:
+    auth_service.forgot_password(data.email)
+    return MessageResponse(
+        detail="If the account exists, a password reset email will be sent."
+    )
+
+@router.post("/reset-password", summary="Reset password", status_code=204)
+def reset_password(auth_service: AuthServiceDep, data: ResetPasswordRequest):
+    auth_service.reset_password(data)

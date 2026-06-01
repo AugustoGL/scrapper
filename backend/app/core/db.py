@@ -37,4 +37,4 @@ def get_session():
 
 
 if __name__ == "__main__":
-    reset_db(_engine)
+    init_db(_engine)

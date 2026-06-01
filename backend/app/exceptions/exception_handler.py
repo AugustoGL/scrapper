@@ -29,7 +29,7 @@ def register_exception_handlers(app: FastAPI):
 
     @app.exception_handler(ForbiddenError)
     async def forbidden(request: Request, exc: ForbiddenError):
-        return JSONResponse(status_code=403, content={"detail": str(exc)})
+        return JSONResponse(status_code=403, content={"detail": exc.detail})
 
     @app.exception_handler(ExternalServiceError)
     async def external_service(request: Request, exc: ExternalServiceError):

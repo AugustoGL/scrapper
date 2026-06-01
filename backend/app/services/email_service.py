@@ -26,7 +26,7 @@ class EmailService:
             raise EmailDeliveryError(f"No se pudo enviar email a {to_email}") from e
 
     def send_verification_email(self, to_email: str, token: str):
-        link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+        link = f"{settings.FRONTEND_URL}{settings.FRONTEND_VERIFY_EMAIL_PATH}?token={token}"
         self._send(
             to_email,
             "Verificá tu cuenta",
@@ -34,7 +34,7 @@ class EmailService:
         )
 
     def send_password_reset_email(self, to_email: str, token: str):
-        link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+        link = f"{settings.FRONTEND_URL}{settings.FRONTEND_RESET_PASSWORD_PATH}?token={token}"
         self._send(
             to_email,
             "Recuperar contraseña",

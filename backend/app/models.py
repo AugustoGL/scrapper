@@ -1,3 +1,5 @@
+from xxlimited_35 import Null
+
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from app.core.base import Base
@@ -12,6 +14,7 @@ class User(Base):
     username = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
+    reset_token = Column(String, nullable=True, default=None)
     is_verified = Column(Boolean, default=False, nullable=False)
 
     tables = relationship("Table", back_populates="user", cascade='all, delete')

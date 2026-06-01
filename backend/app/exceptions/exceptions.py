@@ -24,6 +24,9 @@ class ExternalServiceError(AppError):
 class UserNotFoundError(NotFoundError):
     pass
 
+class UserNotVerified(ForbiddenError):
+    detail = "Email not verified."
+
 class EmailAlreadyRegisteredError(ConflictError):
     pass
 
