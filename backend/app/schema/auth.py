@@ -33,3 +33,6 @@ class TokenPair(BaseModel):
 
 class MessageResponse(BaseModel):
     detail: str
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr

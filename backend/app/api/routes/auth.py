@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from app.api.deps import AuthServiceDep, TokenDep
-from app.schema.auth import RegisterRequest, LoginRequest, TokenPair, ForgotPasswordRequest, ResetPasswordRequest, MessageResponse
+from app.schema.auth import RegisterRequest, LoginRequest, TokenPair, ForgotPasswordRequest, ResetPasswordRequest, MessageResponse, ResendVerificationRequest
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -25,6 +25,28 @@ def register(auth_service: AuthServiceDep, data_user: RegisterRequest):
 )
 def verify_user(auth_service: AuthServiceDep, token: str):
     auth_service.verify_user(token)
+
+@router.post(
+    "/resend-verification-email",
+    summary="Resend verification email",
+    description="""
+    Send a new email verification link.
+
+    For security reasons, the response is always the same,
+    regardless of whether the email exists or is already verified.
+    """,
+    status_code=status.HTTP_200_OK,
+    response_model=MessageResponse,
+)
+def resend_verification_email(
+    auth_service: AuthServiceDep,
+    data: ResendVerificationRequest,
+) -> MessageResponse:
+    auth_service.resend_verification_email(data.email)
+
+    return MessageResponse(
+        detail="If the account exists and is not verified, a verification email will be sent."
+    )
 
 
 @router.post(
